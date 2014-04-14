@@ -32,3 +32,18 @@ void print_matrix (life_t t) //wydruk macierzy
 	printf("\n");
 }
 
+void save_matrix(char *o, life_t t)
+{
+	FILE *out = fopen(o,"w");
+	int i,j;
+	fprintf(out,"%d ",t->rows);
+	fprintf(out,"%d ",t->cols);
+	fprintf(out,"%d ",t->live);
+	fprintf(out,"%d\n",t->dead);
+	for (i = 0; i < t->rows; i++)
+	{
+		for (j = 0; j < t->cols; j++)
+			fprintf(out,"%d ", t->tab[i][j]);
+		fprintf(out,"\n");
+	}
+}

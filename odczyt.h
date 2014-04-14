@@ -9,5 +9,7 @@ void read_matrix (FILE *in, life_t t); //odczyt macierzy
 
 void print_matrix (life_t t); //wydruk macierzy
 
+void save_matrix(char *o, life_t t); //zapis macierzy
+
 
 #endif
