@@ -1,0 +1,343 @@
+\documentclass[a4paper,12pt,twoside]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{polski}
+\usepackage{amsfonts}
+\usepackage{verbatim}
+\usepackage{indentfirst}
+\usepackage{listings}
+\usepackage{color}
+
+
+
+\title{Sprawozdanie końcowe}
+
+\author{Mateusz Nowak}
+
+
+\begin{document}
+\maketitle
+
+\section{Wprowadzenie}
+
+\subsubsection{Specyfikacja funkcjonalna}
+
+
+\subsubsection {Przeznaczenie}
+Celem programu jest symulacja automatu komórkowego (Gra w życie).
+Program wykonany jest w języku C. Projekt zakłada, że wczytywana siatka
+jest dwuwymiarowa, a każda z uporządkowanych komórek znajduję się w
+jednym stanie ( jest żywa albo martwa). Użytkownik poprzez odpowiednią
+komendę zadaje ilość generacji. Nowy stan komórki jest uzależniony od jej
+obecnego stanu i stanu jej sąsiadów.
+
+
+\subsubsection{Wywołanie}
+\medskip
+Program wywołujemy pisząc: ./game\_life \\
+-r nazwa\_danych \\
+-k nazwa\_pliku\_do\_zapisu \\
+-m nazwa\_obrazków \\
+-n ilość\_wywołań\_programu \\
+-f częstotliwość\_wydruków \\ 
+-o .format\_obrazków \\
+Format obrazów to .bmp, .pcx, .tga
+
+
+\newpage
+\subsubsection{Dane wejściowe}
+
+Plik tekstowy, o postaci\\
+$m$ $n$ $x$ $y$\\
+a_{11}... a_{1y}\\
+a_{21}... a_{2y}\\
+...\\
+a_{x1}... a_{xy}\\
+
+
+
+Plik z danymi jest podawany jako argument wywołania programu. Pierw-
+szy rząd zawiera informacje o ilości wierszy, ilości kolumn, stanie komórki
+żywej oraz stanie komórki martwej. Kolejne wiersza są siatką o wymiarach
+powyższych z podanymi stanami komórek.
+
+
+\subsubsection{Format wyników}
+
+Program po każdej generacji tworzy dane wyjściowe w formie plików
+graficznych. Możliwe jest również zapisanie 
+bieżącej konfiguracji do pliku zewnętrznego o identycznej
+strukturze z plikiem wejścia, dzięki czemu możliwe jest jego ponowne wczytanie 
+i rozpoczęcie generacji.
+\subsection{Specyfikacja implementacyjna}
+\subsubsection{Podział programu}
+Program został podzielony na 6 modułów współpracujących ze sobą:
+\begin{itemize}
+\item main
+\item algorytm
+\item obraz
+\item zasady
+\item magazyn
+\item odczyt
+\end{itemize}
+\begin{figure}[h]
+    \begin{center}
+    \includegraphics [width=0.9\textwidth] {Rysunek1.jpg}
+    \end{center}
+  \end{figure}
+Każdy z tych modułów zawiera szereg funkcji które zostaną pokrótce opisane.
+
+\subsubsection{Moduł magazyn}
+
+Moduł ten składa się z dwóch plików: $magazyn.h$ i $magazyn.c$
+Plik $magazyn.h$ zawiera strukturę:\\
+typedef struct
+\{\\
+int rows; //ilość wierszy\\
+int cols; //ilość kolumn\\
+int **tab;//macierz o rozmiarach rows x cols\\
+int dead; //stan dla komórki martwej\\
+int live; //stan dla komórki żywej\\
+\}*life\_t;\\
+Zawiera również funkcję:
+void alloc\_matrix(life\_t t);, której zadaniem jest alokacja pamięci dla macie-
+rzy z podanej struktury.\\
+Struktura zadeklarowana w tym pliku wykorzystywana jest przez cały pro-
+gram (przez wszystkie jego składniki).
+Plik $magazyn.c$ zawiera zapis funkcji alloc\_matrix.
+
+\subsubsection{Moduł odczyt}
+
+Moduł zawiera dwa pliki: $odczyt.h$ i $odczyt.c$
+Poza odniesieniem do pliku $magazyn.h$ plik $odczyt.h$ zawiera 4 funkcje:
+void read\_var(FILE *in, life\_t t); zajmuje się odczytem z podanego pliku roz-
+miaru macierzy i stanów komórki\\
+void read\_matrix(FILE *in, life\_t t); zajmuje się odczytem z podanego pliku
+samej macierzy\\
+void save\_matrix(FILE *in, life\_t t); zajmuje się zapisem do podanego pliku
+macierzy\\
+void print\_matrix(life t t); zajmuje się wydrukiem na ekran macierzy\\
+Plik $odczyt.c$ zawiera zapis funkcji podanych w $odczyt.h$
+
+\subsubsection{Moduł algorytm}
+
+Moduł składa się z $algorytm.h$ i $algorytm.c$
+Plik $algorytm.h$ zawiera odniesienie do $magazyn.h$ i $zasady.h$
+Zawiera również funkcję void game\_life (life\_t t,life\_t p,char *name); która
+otrzymuje dwie struktury:\\
+t - struktura główna z wypełnioną tablicą, p - struktura pomocnicza, do któ-
+rej zapisywane są wyniki pracy funkcji oraz
+nazwę pliku graficznego do zapisu. Plik $algorytm.c$ zawiera zapis funkcji po-
+danej w $algorytm.h$, która jest głównym algorytmem projektu
+
+\subsubsection{Moduł zasady}
+
+Moduł ten składa się z $zasady.h$ i zapisu funkcji zawartych w $zasady.c$
+Plik $zasady.h$ zawiera odniesienie do $magazyn.h$
+Zawiera również 9 funckji
+void rule\_row1\_col1 (life\_t a, life\_t b); // dla prawego górnego rogu\\
+void rule\_row\_n\_col1 (life\_t a, life\_t b); // dla lewego dolnego rogu\\
+void rule\_row1\_col\_n (life\_t a, life\_t b); // dla lewego górnego rogu\\
+void rule\_row\_n\_col\_n (life\_t a, life\_t b); //dla lewego dolnego rogu\\
+Powyższe funkcje zajmują się szczególnymi przypadkami położeń w macierzy
+prostokątnej/kwadratowej.\\
+void rule\_row1 (life\_t a, life\_t b, int x, int y); // pierwszy wiersz\\
+void rule\_row\_n (life\_t a, life t\_b, int x, int y); // ostatni wiersz\\
+void rule\_col1 (life\_t a, life\_t b, int x, int y); // pierwsza kolumna\\
+void rule\_col\_n (life\_t a, life\_t b, int x, int y); // ostatnia kolumna\\
+4 powyższe funkcje są odpowiedzialne za odpowiedni dobór sąsiadów w po-
+danych wierszach/kolumnach\\
+void rule\_mid (life\_t a, life\_t b, int x, int y); // środek macierzy
+
+\subsubsection{Moduł obraz}
+
+Moduł obraz składa się z $obraz.h$ i pliku wykonywalnego $obraz.c$.
+Plik $zasady.h$ zawiera odniesienie do $magazyn.h$ i $odczyt.h$ oraz deklarację
+funkcji void draw\_picture (life\_t t, char *picture name); , która
+drukuje do pliku w formacie np. .bmp zadany obraz.
+
+\subsubsection{Moduł main}
+
+Moduł main składa się z pliku $main.c$, który jest
+sercem całego programu. Posiada odniesienia do modułów:
+$magazyn$, $odczyt$, $algorytm$.
+Steruje pracą całego programu i podległych mu modułów
+i im podległych modułów.
+Sam zawiera bibliotekę $getopt.h$ służącą do oczytu z konsoli
+odpowiednich opcji i funkcji programu.
+
+\section {Decyzje projektowe}
+
+\begin{itemize}
+\item Wybór biblioteki graficznej padł na dobrze opisaną i szeroko wspieraną bibliotekę allegro
+\item Sposób wczytywania planszy do gry- wczytywanie całej planszy zamiast pojedynczych żywych komórek
+      powoduje, że program jest bardziej zrozumiały dla laika
+\item Podział programu na 6 modułów i ich logiczne powiązanie
+\item Sposób komunikacji z użytkownikiem poprzez listę komend - program może być wykorzystywany w automatach itp.
+\item Użycie funkcji tylko typu void (niżej szczegółowy opis)
+\item Działanie na dwóch strukturach- struktura główna i kopia
+\item Rezygnacja z tworzenia folderu wewnątrz programu spowodowana nieuniwersalnością rozwiązania- program mógłby
+      działać tylko pod jednym konkretnym typem systemu.
+\end{itemize}
+Wybór tylko funkcji void nie jest przypadkowy. Chciałem, żeby program operował
+tylko na dwóch strukturach,a nie żeby np. deklarował kolejną strukturę w funkcji odczytu.
+Według mnie taki sposób wykonania powoduje spore uproszczenie w działaniu programu jak też
+jest łatwiejsze do zrozumienia. 
+
+\newpage
+\section {Obsługa i działanie programu}
+
+Jak to było zapisane w specyfikacji funkcjonalnej program uruchamiamy:
+\medskip
+      ./game\_life -r dane -k tesktowy_wychodzący -m obraz -n 100 -f 5 -o.bmp
+      
+Obsługa komend uruchamiania została oparta o bibliotekę getopt.\\
+Program po otrzymaniu odpowieniej ilości argumentów kolejno robi:\\
+1. Otwiera plik z danymi\\
+2. Wstępnie deklaruje dwie strutkury biorące udział w programie: main i pom\\
+3. Za pomocą funkcji read\_var odczytuje wartości z pierwszej linii pliku do strukury, tj. ilość kolumn
+    ilość wierszy, stan żywej komórki, stan komórki martwej, a następnie przypisuje te same wartości
+    strukturze pom.\\
+4. Deklaracja tablic zawartych w strukturach.\\
+5. Pętla główna wykonująca się tyle razy ile było podane w argumencie -n\\
+\vskip 2mm-przypisanie wartości z -m do statycznej tablicy znaków\\
+\vskip 2mm-przypisanie wartości z -k do statycznej tablicy znaków\\
+\vskip 2mm-warunek jeżeli i jest równe wartości z -f to:\\
+\begin {itemize}
+\item Przypisanie wartości i do tablicy znaków\\
+\item Za pomocą funckji strcat kopiowanie kolejnych modułów nazw plików tj. nazwa+numer+format\\
+\item Zwiększenie wartości freq o wartość podaną w -f\\
+\end {itemize}\\
+
+\vskip 2mm-wywołanie funkcji game\_life odpowiadającej za główny algorytm gry\\
+\vskip 2mm-dwie pętle przypisujące wartości ze struktury pom do main\\
+\vskip 2mm-funkcja zapisująca cały plik w formacie .txt zawierający pierwszy wiersz oraz pole gry
+\section {Testy}
+Testy zostały przeprowadzone na kilku podstawowych dla Automatu komórkowego\\
+strukturach takich jak pulsar, latarnia, żabka, szybowiec.
+Poniżej są przedstawione struktury tych plików, a pliki graficzne są dodane w paczce zip z powodu ich sporego rozmiaru\\
+który psuje cały dokument:
+\subsection {Pulsar}
+Struktura pliku:\\
+21 38 1 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 0 0 0 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 0 0 0 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 0 0 0 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 0 0 0 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+
+
+
+\subsection {Latarnia}
+21 38 1 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+
+\subsection {Żabka}
+
+21 38 1 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+
+\subsection {Glider}
+21 38 1 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\\
+
+Po takich testach jestem w stanie stwierdzić, że program będzie działał poprawnie dla każdych danych
+i każdej rozsądnej ilości iteracji oraz częstotliwości.
+Należy uważać z ilością iteracji, ponieważ zbyt duża ich ilość może w łatwy sposób pozbawić nas
+przestrzeni na dysku.
+\newpage
+\section {Podsumowanie}
+Na koniec chciałem podsumować całą pracę nad projektem. Myślę, że udało mi się zrealizować
+jego cel w stopniu dobrym. Algorytm jest całkiem szybki jak dla sposobu podawania danych.
+Oczywiście możnaby użyć przechowywania na jednym bicie informacji o danej komórce, ale 
+moim zdaniem nie usprawni to wiele szybkości działania programu. Program działa stabilnie, 
+jest napisany i sformatowany tak, żeby każda osoba wiedziała co od czego zależy i co jak działa.
+Wydaje mi sie, że sposób wczytywania przez mój program danych jest naturalny i zrozumiały. 
+Moim głównym założeniem było, żeby program był jasny, bez żadnych często ułatwiających życie
+fajerwerków, tak aby każda osoba była wstanie samodzielnie zrozumieć kod. W paczce .zip, którą
+wrzucam na isod'a zawieram: kod źródłowy programu, kod do sprawozdania, samo sprawozdanie,
+folder obr z przykładowymi testami i ich graficznymi wynikami. Oczywiście cały kod jest wrzucony 
+na zewnętrzne repozytorium:\\
+https://github.com/nowaczq/projekt.git\\
+Praca nad projektem bywała czasami frustrująca, a czasami ciekawa. Ogólnie jestem zadowolony z przebiegu 
+pracy jak i z końcowego wyniku
+
+
+\end{document}
