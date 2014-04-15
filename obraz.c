@@ -8,7 +8,10 @@ void draw_picture(life_t t, char *picture_name)
 //	clear_to_color(screen, makecol(255,255,255));
 	BITMAP *obrazek1 = NULL;
 	PALETTE pal;
-	obrazek1 = create_bitmap(50*t->rows,50*t->cols);
+	if (t->rows >= t->cols)
+		obrazek1 = create_bitmap(10*t->rows,10*t->rows);
+	else
+		obrazek1 = create_bitmap(10*t->cols,10*t->cols);
 	if( !obrazek1)
 	{	
 		set_gfx_mode(GFX_TEXT,0,0,0,0);
